@@ -49,6 +49,7 @@ export async function POST(req: Request) {
       for (const w of words) {
         const test = lineText ? `${lineText} ${w}` : w;
         const wWidth = font.widthOfTextAtSize(test, size);
+
         if (wWidth > maxWidth) {
           page.drawText(lineText, { x, y: yy, size, font, color: black });
           yy -= lineH;
@@ -146,7 +147,7 @@ export async function POST(req: Request) {
       if (y < minY) newPage();
     };
 
-    // primera página
+    // Primera página
     drawHeader();
 
     for (const comp of competencies) {
@@ -197,13 +198,10 @@ export async function POST(req: Request) {
 
     const bytes = await pdf.save();
 
-    // Uint8Array -> ArrayBuffer (compatible con Response BodyInit en build)
-    const arrayBuffer = bytes.buffer.slice(
-      bytes.byteOffset,
-      bytes.byteOffset + bytes.byteLength
-    );
+    // ✅ FIX definitivo (evita ArrayBuffer|SharedArrayBuffer en build)
+    const responseBody = new Uint8Array(bytes);
 
-    return new Response(arrayBuffer, {
+    return new Response(responseBody, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
