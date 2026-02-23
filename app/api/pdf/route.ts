@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { PDFDocument, StandardFonts, rgb, PDFPage } from "pdf-lib";
 
 export async function POST(req: Request) {
@@ -55,10 +57,12 @@ export async function POST(req: Request) {
           lineText = test;
         }
       }
+
       if (lineText) {
         page.drawText(lineText, { x, y: yy, size, font, color: black });
         yy -= lineH;
       }
+
       return yy;
     };
 
@@ -70,6 +74,7 @@ export async function POST(req: Request) {
         font: bold,
         color: blue,
       });
+
       y -= 24;
 
       // Caja datos generales
@@ -92,9 +97,11 @@ export async function POST(req: Request) {
       };
 
       const topY = y - 22;
+
       line("Residente:", resident, 60, topY);
       line("Evaluador:", evaluator, 60, topY - 18);
       line("Hospital:", origin, 60, topY - 36);
+
       line("Año:", resYear, 330, topY);
       line("Fecha:", date, 330, topY - 18);
 
@@ -152,6 +159,7 @@ export async function POST(req: Request) {
         font: bold,
         color: blue,
       });
+
       y -= 14;
 
       for (const it of comp.items || []) {
@@ -168,6 +176,7 @@ export async function POST(req: Request) {
           font: bold,
           color: black,
         });
+
         y -= 12;
 
         if (it.description) {
@@ -188,7 +197,13 @@ export async function POST(req: Request) {
 
     const bytes = await pdf.save();
 
-    return new Response(bytes, {
+    // Uint8Array -> ArrayBuffer (compatible con Response BodyInit en build)
+    const arrayBuffer = bytes.buffer.slice(
+      bytes.byteOffset,
+      bytes.byteOffset + bytes.byteLength
+    );
+
+    return new Response(arrayBuffer, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
